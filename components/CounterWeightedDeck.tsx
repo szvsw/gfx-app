@@ -295,6 +295,8 @@ export const CalatravaSketch: React.FC = () => {
     canv.position(-1, -1);
     canv.style("z-index", -2);
     calatrava.current.p5 = p5
+    calatrava.current.formScalar = 15*2140/calatrava.current.p5.windowHeight
+    calatrava.current.forceScalar = 3*2140/calatrava.current.p5.windowHeight
     calatrava.current.update()
     calatrava.current.drawForceDiagram()
     calatrava.current.drawFormDiagram()
@@ -325,6 +327,8 @@ export const CalatravaSketch: React.FC = () => {
         <Slider size="small" onChange={(e) => calatrava.current.nSegmentsInDeck = e.target.value} defaultValue={8} step={1} min={3} max={16} marks={true}/>
         <Typography gutterBottom>Deck Length</Typography>
         <Slider size="small" onChange={(e) => calatrava.current.deckVector = [e.target.value,0]} defaultValue={1} step={0.01} min={0.1} max={2.5}/>
+      </Box>
+      <Box sx={{ width: "30%",display: inputGroup=="geometric" ? "inline" : "none"}}> 
         <Typography gutterBottom>Tower Angle</Typography>
         <Slider size="small" 
           onChange={(e) => calatrava.current.towerVectorAngle= e.target.value}
