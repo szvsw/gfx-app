@@ -308,10 +308,14 @@ export const CalatravaSketch: React.FC = () => {
 
 	return (
     <>
-      <ToggleButtonGroup sx={{mt: "1rem"}} exclusive onChange={(event: React.MouseEvent<HTMLElement>,newInputGroup: string)=>setInputGroup(newInputGroup)} value={inputGroup}>
+      <Stack sx={{mt: "1rem"}} direction="row" justifyContent="space-between" alignItems="center">
+
+      <ToggleButtonGroup  exclusive onChange={(event: React.MouseEvent<HTMLElement>,newInputGroup: string)=>setInputGroup(newInputGroup)} value={inputGroup}>
         <ToggleButton value="geometric">Geometric Properties</ToggleButton>
         <ToggleButton value="material">Material Properties</ToggleButton>
       </ToggleButtonGroup>
+      <Typography variant="overline">GWP: x lbsCO2eq, y years of driving to work, z flights from LA to NY, w steaks </Typography>
+      </Stack>
       <Stack sx={{mt: "2rem",}} direction="row" spacing="2rem" alignItems="center">
 
       <Box sx={{ width: "30%",display: inputGroup=="geometric" ? "inline" : "none"}}> 
