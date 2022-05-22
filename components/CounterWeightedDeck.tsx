@@ -10,6 +10,7 @@ const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
 export const CalatravaSketch: React.FC = () => {
   const createCalatrava = () => {
     return {
+      p5: undefined as p5Types | undefined,
       nSegmentsInDeck: 8,
       deckLoad:  1,
       towerVectorAngle: Math.PI/3,
@@ -70,135 +71,135 @@ export const CalatravaSketch: React.FC = () => {
         this.updateTowerPointsInForce()
       },
       drawDeckPointsInForm() {
-        this.p5.fill(255)
-        this.p5.noStroke()
+        this.p5?.fill(255)
+        this.p5?.noStroke()
         this.deckPointsInForm.map(([x,y])=>{ 
-            this.p5.ellipse(x,y,10/this.formScalar,10/this.formScalar) 
+            this.p5?.ellipse(x,y,10/this.formScalar,10/this.formScalar) 
         })
       },
       drawTowerPointsInForm() {
-        this.p5.fill(255)
-        this.p5.noStroke()
+        this.p5?.fill(255)
+        this.p5?.noStroke()
         this.towerPointsInForm.map(([x,y])=>{ 
-            this.p5.ellipse(x,y,10/this.formScalar,10/this.formScalar) 
+            this.p5?.ellipse(x,y,10/this.formScalar,10/this.formScalar) 
         })
       },
       drawTowerSegmentsInForm() {
-        this.p5.stroke(255)
-        this.p5.strokeWeight(1.0/this.formScalar)
-        this.p5.noFill()
+        this.p5?.stroke(255)
+        this.p5?.strokeWeight(1.0/this.formScalar)
+        this.p5?.noFill()
         Array(this.nSegmentsInDeck).fill(0).map((elem,i)=>{
           const [x1,y1] = this.towerPointsInForm[i].map((coord,j)=>coord-0.5*this.towerVector[j])
           const [x2,y2] = this.towerPointsInForm[i].map((coord,j)=>coord+0.5*this.towerVector[j])
-          this.p5.line(x1,y1,x2,y2)
+          this.p5?.line(x1,y1,x2,y2)
         })
       },
       drawDeckSegmentsInForm() {
-        this.p5.stroke(255)
-        this.p5.strokeWeight(1.0/this.formScalar)
-        this.p5.noFill()
+        this.p5?.stroke(255)
+        this.p5?.strokeWeight(1.0/this.formScalar)
+        this.p5?.noFill()
         Array(this.nSegmentsInDeck).fill(0).map((elem,i)=>{
           const [x1,y1] = this.deckPointsInForm[i].map((coord,j)=>coord-0.5*this.deckVector[j])
           const [x2,y2] = this.deckPointsInForm[i].map((coord,j)=>coord+0.5*this.deckVector[j])
-          this.p5.line(x1,y1,x2,y2)
+          this.p5?.line(x1,y1,x2,y2)
         })
       },
       drawTensionCablesInForm() {
-        this.p5.stroke(255)
-        this.p5.strokeWeight(1.0/this.formScalar)
-        this.p5.noFill()
+        this.p5?.stroke(255)
+        this.p5?.strokeWeight(1.0/this.formScalar)
+        this.p5?.noFill()
         Array(this.nSegmentsInDeck).fill(0).map((elem,i)=>{
           const [x1,y1] = this.deckPointsInForm[i]
           const [x2,y2] = this.towerPointsInForm[i]
-          this.p5.line(x1,y1,x2,y2)
+          this.p5?.line(x1,y1,x2,y2)
         })
       },
       drawCablePointsInForce() {
-        this.p5.fill(255)
-        this.p5.noStroke()
+        this.p5?.fill(255)
+        this.p5?.noStroke()
         this.cablePointsInForce.map(([x,y])=>{ 
-            this.p5.ellipse(x,y,10/this.formScalar,10/this.formScalar) 
+            this.p5?.ellipse(x,y,10/this.formScalar,10/this.formScalar) 
         })
       },
       drawDeckPointsInForce() {
-        this.p5.fill(255)
-        this.p5.noStroke()
+        this.p5?.fill(255)
+        this.p5?.noStroke()
         this.deckPointsInForce.map(([x,y])=>{ 
-            this.p5.ellipse(x,y,10/this.formScalar,10/this.formScalar) 
+            this.p5?.ellipse(x,y,10/this.formScalar,10/this.formScalar) 
         })
       },
       drawTowerPointsInForce() {
-        this.p5.fill(255)
-        this.p5.noStroke()
+        this.p5?.fill(255)
+        this.p5?.noStroke()
         this.towerPointsInForce.map(([x,y])=>{ 
-            this.p5.ellipse(x,y,10/this.formScalar,10/this.formScalar) 
+            this.p5?.ellipse(x,y,10/this.formScalar,10/this.formScalar) 
         })
       },
       drawDeckSelfWeights() {
-        this.p5.stroke(255)
-        this.p5.strokeWeight(1/this.forceScalar)
-        this.p5.noFill()
+        this.p5?.stroke(255)
+        this.p5?.strokeWeight(1/this.forceScalar)
+        this.p5?.noFill()
         Array(this.nSegmentsInDeck).fill(0).map((elem,i)=>{
           const [x1,y1] = this.deckPointsInForce[i]
           const [x2,y2] = this.deckPointsInForce[i+1]
-          this.p5.line(x1,y1,x2,y2)
+          this.p5?.line(x1,y1,x2,y2)
         })
       },
       drawTowerSelfWeights() {
-        this.p5.stroke(255)
-        this.p5.strokeWeight(1.0/this.forceScalar)
-        this.p5.noFill()
+        this.p5?.stroke(255)
+        this.p5?.strokeWeight(1.0/this.forceScalar)
+        this.p5?.noFill()
         Array(this.nSegmentsInDeck).fill(0).map((elem,i)=>{
           const [x1,y1] = this.towerPointsInForce[i]
           const [x2,y2] = this.towerPointsInForce[i+1]
-          this.p5.line(x1,y1,x2,y2)
+          this.p5?.line(x1,y1,x2,y2)
         })
       },
       drawCableTensionForces() {
-        this.p5.stroke(255)
-        this.p5.strokeWeight(1.0/this.forceScalar)
-        this.p5.noFill()
+        this.p5?.stroke(255)
+        this.p5?.strokeWeight(1.0/this.forceScalar)
+        this.p5?.noFill()
         Array(this.nSegmentsInDeck).fill(0).map((elem,i)=>{
           const [x1,y1] = this.cablePointsInForce[i]
           const [x2,y2] = this.cablePointsInForce[i+1]
-          this.p5.line(x1,y1,x2,y2)
+          this.p5?.line(x1,y1,x2,y2)
         })
       },
       drawDeckCompressionForces() {
-        this.p5.stroke(255)
-        this.p5.strokeWeight(1.0/this.forceScalar)
-        this.p5.noFill()
+        this.p5?.stroke(255)
+        this.p5?.strokeWeight(1.0/this.forceScalar)
+        this.p5?.noFill()
         Array(this.nSegmentsInDeck).fill(0).map((elem,i)=>{
           const [x1,y1] = this.cablePointsInForce[i]
           const [x2,y2] = this.deckPointsInForce[i]
-          this.p5.line(x1,y1,x2,y2)
+          this.p5?.line(x1,y1,x2,y2)
         })
       },
       drawTowerCompressionForces() {
-        this.p5.stroke(255)
-        this.p5.strokeWeight(1.0/this.forceScalar)
-        this.p5.noFill()
+        this.p5?.stroke(255)
+        this.p5?.strokeWeight(1.0/this.forceScalar)
+        this.p5?.noFill()
         Array(this.nSegmentsInDeck).fill(0).map((elem,i)=>{
           const [x1,y1] = this.cablePointsInForce[i]
           const [x2,y2] = this.towerPointsInForce[i]
-          this.p5.line(x1,y1,x2,y2)
+          this.p5?.line(x1,y1,x2,y2)
         })
       },
       drawFormDiagram()  {
-        this.p5.push()
-          this.p5.translate(this.p5.width*this.formOffset[0],this.p5.height*this.formOffset[1])
-          this.p5.scale(this.formScalar)
+        this.p5?.push()
+          this.p5?.translate(this.p5?.width*this.formOffset[0],this.p5?.height*this.formOffset[1])
+          this.p5?.scale(this.formScalar)
           this.drawDeckPointsInForm()
           this.drawTowerPointsInForm()
           this.drawTowerSegmentsInForm()
           this.drawDeckSegmentsInForm()
           this.drawTensionCablesInForm()
-        this.p5.pop()
+        this.p5?.pop()
       },
       drawForceDiagram() {
-        this.p5.push()
-          this.p5.translate(this.p5.width*this.forceOffset[0],this.p5.height*this.forceOffset[1])
-          this.p5.scale(this.forceScalar)
+        this.p5?.push()
+          this.p5?.translate(this.p5?.width*this.forceOffset[0],this.p5?.height*this.forceOffset[1])
+          this.p5?.scale(this.forceScalar)
           this.drawCablePointsInForce()
           this.drawDeckPointsInForce()
           this.drawTowerPointsInForce()
@@ -207,7 +208,7 @@ export const CalatravaSketch: React.FC = () => {
           this.drawCableTensionForces()
           this.drawDeckCompressionForces()
           this.drawTowerCompressionForces()
-        this.p5.pop()
+        this.p5?.pop()
       },
 
     }
