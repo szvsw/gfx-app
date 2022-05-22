@@ -29,6 +29,9 @@ export const Header: React.FC<Props> = (props) => {
           </Link>
           <Box>
           <ButtonGroup variant="outlined">
+            <Link href="/equilibrium-node">
+              <Button >Equilibrium Node</Button>
+            </Link>
             <Link href="/hookes-law">
               <Button >Hooke's Law</Button>
             </Link>
