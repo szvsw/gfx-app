@@ -1,0 +1,87 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  /* font-size: 0.9rem; */
+  width: 100%;
+  height: 100%;
+  margin: auto;
+}
+
+.p5Canvas {
+  display: block;
+}
+
+/* .card-groups-container,
+.card-group-container {
+  display: flex;
+} */
+
+/* button {
+  font-size: 0.75rem;
+  border-radius: 0.3rem;
+  background-color: black;
+  border: none;
+  padding: 0.3rem;
+  color: white;
+} */
+
+/* .hidden {
+  display: none;
+  transition: 1s;
+}
+
+.card-groups-container button {
+  margin-bottom: 0.2rem;
+}
+
+.card-groups-container {
+  position: relative;
+  float: top;
+}
+.card-groups {
+  background-color: white;
+  position: absolute;
+  width: 90%;
+  z-index: 2;
+  display: flex;
+  margin-bottom: 1rem;
+}
+.card-group-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 15rem;
+  position: relative;
+  float: top;
+}
+.card-group {
+  display: flex;
+  position: absolute;
+  top: 100%;
+  background-color: #dddddddd;
+  z-index: 1;
+}
+
+.card-group-header {
+  display: flex;
+  justify-content: space-between;
+}
+.card-group-expander {
+  flex-grow: 0.9;
+}
+
+button {
+  font-size: 0.75rem;
+  border-radius: 0.3rem;
+  background-color: black;
+  border: none;
+  padding: 0.3rem;
+  color: white;
+}
+
+button:hover {
+  background-color: #444444;
+  transition: 0.2s;
+} */
