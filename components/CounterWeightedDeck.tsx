@@ -1,5 +1,9 @@
 import p5Types from "p5"; //Import this for typechecking and intellisense
 import dynamic from "next/dynamic";
+import { useCallback, useRef } from "react";
+import Slider from "@mui/material/Slider";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 
 // Will only import `react-p5` on client-side
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
@@ -8,7 +12,7 @@ const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
 
 
 export const CalatravaSketch: React.FC = () => {
-  const createCalatrava = () => {
+  const createCalatrava = useCallback(() => {
     return {
       p5: undefined as p5Types | undefined,
       nSegmentsInDeck: 8,
@@ -25,8 +29,8 @@ export const CalatravaSketch: React.FC = () => {
       towerPointsInForce: [[0,0]],
       formScalar: 50,
       forceScalar: 25,
-      formOffset: [0.25,0.5],
-      forceOffset: [0.85,0.5],
+      formOffset: [0.25,0.85],
+      forceOffset: [0.85,0.85],
       updateDeck() {
         const deckOffset = this.deckVector.map((a: number)=>a*0.5)
         this.deckPointsInForm = Array(this.nSegmentsInDeck).fill([0,0]).map((elem,i)=> {
@@ -40,7 +44,7 @@ export const CalatravaSketch: React.FC = () => {
         })
       },
       updateCableVectorsAndPoints() {
-        this.cablePointsInForce[0] = [0,0]
+        this.cablePointsInForce = Array(this.nSegmentsInDeck+1).fill([0,0])
         this.cableVectors = Array(this.nSegmentsInDeck).fill([0,0]).map((elem,i)=> {
           const vect = this.towerPointsInForm[i].map((coord,j)=>coord-this.deckPointsInForm[i][j])
           const vectMag = Math.sqrt(vect[0]*vect[0]+vect[1]*vect[1])
@@ -212,18 +216,20 @@ export const CalatravaSketch: React.FC = () => {
       },
 
     }
-  }
+  }, [])
 
-  const calatrava = createCalatrava()
+  const calatrava = useRef(createCalatrava())
+  
+
 
   const setup = (p5: p5Types, canvasParentRef: Element) => {
     const canv = p5.createCanvas(p5.windowWidth, p5.windowHeight).parent(canvasParentRef);
     canv.position(-1, -1);
     canv.style("z-index", -2);
-    calatrava.p5 = p5
-    calatrava.update()
-    calatrava.drawForceDiagram()
-    calatrava.drawFormDiagram()
+    calatrava.current.p5 = p5
+    calatrava.current.update()
+    calatrava.current.drawForceDiagram()
+    calatrava.current.drawFormDiagram()
   }
   
   const mouseClickedDraw = (p5: p5Types) => {
@@ -232,25 +238,42 @@ export const CalatravaSketch: React.FC = () => {
 
 
 	return (
-          <Sketch
-            setup={setup}
-            draw={(p5: p5Types) => {
-              p5.background(0)
-              calatrava.towerVectorAngle = p5.map(p5.mouseX,p5.width,0,p5.PI/2-0.01,0.01)
-              calatrava.towerVector = [Math.cos(calatrava.towerVectorAngle), Math.sin(calatrava.towerVectorAngle)],
-              calatrava.deckVector = [p5.map(p5.mouseY,0,p5.height,0.25,3),0]
-              calatrava.update()
-              calatrava.drawForceDiagram()
-              calatrava.drawFormDiagram()
-            }}
-            mouseClicked={mouseClickedDraw}
-            // mouseWheel={handleWheelZoom}
-            // mouseDragged={moveMap}
-            // mouseReleased={() => (lastPosRef.current = null)}
-            // keyPressed={handleZoom}
-            windowResized={(p5: p5Types) => {
-              p5.resizeCanvas(p5.windowWidth, p5.windowHeight);}}
-          />
+    <>
+      <Box sx={{mt: "2rem", width: "30%"}}> 
 
+        <Typography gutterBottom>Number of Cables</Typography>
+        <Slider size="small" onChange={(e) => calatrava.current.nSegmentsInDeck = e.target.value} defaultValue={8} step={1} min={3} max={16} marks={true}/>
+        <Typography gutterBottom>Deck Length</Typography>
+        <Slider size="small" onChange={(e) => calatrava.current.deckVector = [e.target.value,0]} defaultValue={1} step={0.01} min={0.1} max={2.5}/>
+        <Typography gutterBottom>Tower Angle</Typography>
+        <Slider size="small" 
+          onChange={(e) => {
+            calatrava.current.towerVectorAngle= e.target.value
+            calatrava.current.towerVector = [Math.cos(calatrava.current.towerVectorAngle), Math.sin(calatrava.current.towerVectorAngle)]
+          }} 
+          defaultValue={Math.PI/3} step={0.01} min={0.01} max={Math.PI/2-0.01}
+        />
+      </Box>
+
+      <Sketch
+        setup={setup}
+        draw={(p5: p5Types) => {
+          p5.background(0)
+          // calatrava.current.towerVectorAngle = p5.map(p5.mouseX,p5.width,0,p5.PI/2-0.01,0.01)
+          // calatrava.current.towerVector = [Math.cos(calatrava.current.towerVectorAngle), Math.sin(calatrava.current.towerVectorAngle)],
+          // calatrava.current.deckVector = [p5.map(p5.mouseY,0,p5.height,0.25,3),0]
+          calatrava.current.update()
+          calatrava.current.drawForceDiagram()
+          calatrava.current.drawFormDiagram()
+        }}
+        mouseClicked={mouseClickedDraw}
+        // mouseWheel={handleWheelZoom}
+        // mouseDragged={moveMap}
+        // mouseReleased={() => (lastPosRef.current = null)}
+        // keyPressed={handleZoom}
+        windowResized={(p5: p5Types) => {
+          p5.resizeCanvas(p5.windowWidth, p5.windowHeight);}}
+      />
+    </>
   )
 }
