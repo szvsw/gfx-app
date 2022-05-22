@@ -1,6 +1,6 @@
 import p5Types from "p5"; //Import this for typechecking and intellisense
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Box from "@mui/material/Box"
 import Slider from "@mui/material/Slider"
 import Stack from "@mui/material/Stack"
