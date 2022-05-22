@@ -28,7 +28,7 @@ export const Header: React.FC<Props> = (props) => {
           </Button>
           </Link>
           <Box>
-          <ButtonGroup variant="outlined">
+          <ButtonGroup size="small" variant="outlined">
             <Link href="/equilibrium-node">
               <Button >Equilibrium Node</Button>
             </Link>
@@ -36,7 +36,7 @@ export const Header: React.FC<Props> = (props) => {
               <Button >Hooke's Law</Button>
             </Link>
             <Link href="/counterweighted-deck">
-              <Button >Counterweighted Cable-Stayed Deck</Button>
+              <Button >Counterweighted Deck</Button>
             </Link>
           </ButtonGroup>
 
