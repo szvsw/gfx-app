@@ -64,7 +64,6 @@ export const EquilibriumNode: React.FC = () => {
         this.p5?.noStroke()
         this.p5?.fill(255)
         this.p5?.ellipse(0,0,10,10)
-        this.p5?.stroke(255)
         this.p5?.strokeWeight(1)
         this.vectors.map(([x,y],i)=>{
           const vector = this.p5?.createVector(x,y) 
@@ -73,12 +72,20 @@ export const EquilibriumNode: React.FC = () => {
           const arrowHeadVector = this.p5?.createVector(x,y)
           const cutLineVector = this.p5?.createVector(x,y)
           cutLineVector?.rotate(Math.PI/2).setMag(formLengthScalar/20)
+          this.p5?.stroke(255)
           this.p5?.line(vector.x/this.magnitudes[i]*12,vector.y/this.magnitudes[i]*12,vector.x,vector.y)
           this.p5?.line(vector?.x-cutLineVector.x,vector?.y-cutLineVector.y,vector?.x+cutLineVector?.x,vector?.y+cutLineVector.y)
           arrowHeadVector?.rotate(Math.PI/4).setMag(formLengthScalar/20)
           this.p5?.line(vector.x/this.magnitudes[i]*12,vector?.y/this.magnitudes[i]*12,vector.x/this.magnitudes[i]*12+arrowHeadVector?.x,vector.y/this.magnitudes[i]*12+arrowHeadVector.y)
           arrowHeadVector?.rotate(-Math.PI/2)
           this.p5?.line(vector.x/this.magnitudes[i]*12,vector?.y/this.magnitudes[i]*12,vector.x/this.magnitudes[i]*12+arrowHeadVector?.x,vector.y/this.magnitudes[i]*12+arrowHeadVector.y)
+          this.p5?.stroke(0)
+          const nextVectIndex = (i+this.vectors.length-1)%this.vectors.length
+          const nextVectorVals = this.vectors[nextVectIndex]
+          const nextVector = this.p5?.createVector(nextVectorVals[0],nextVectorVals[1])
+          nextVector?.setMag(this.magnitudes[nextVectIndex])
+          const centroid = [(vector.x+nextVector?.x)/3,(vector.y+nextVector?.y)/3]
+          this.p5?.text(String.fromCharCode("A".charCodeAt(0)+i),centroid[0],centroid[1])
         })
         this.p5?.pop()
       },
@@ -93,6 +100,8 @@ export const EquilibriumNode: React.FC = () => {
           this.p5?.strokeWeight(1)
           const [x2,y2] = this.pointsInForce[(i+1)%this.nForces]
           this.p5?.line(x,y,x2,y2)
+          this.p5?.stroke(0)
+          this.p5?.text(String.fromCharCode("a".charCodeAt(0)+i),x+5,y+15)
         })
         this.p5?.pop()
       }
