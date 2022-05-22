@@ -1,8 +1,19 @@
-// import Link from "next/link";
-import  Typography from "@mui/material/Typography";
+import Typography from "@mui/material/Typography";
+import Link from "@mui/material/Link"
+import Divider from "@mui/material/Divider";
+import Stack from "@mui/material/Stack";
 
 export default function App() {
   return (
-  <Typography>Hello World</Typography>
+
+  <>
+    <Stack sx={{mt: "1rem", width: "30%"}} spacing="0.5rem">
+      <Typography variant="caption" >Welcome to IGS.  This website will allow you to explore the reciprocal relation between primal and dual representations of the forms and forces in a few common structural typologies.</Typography>
+      <Typography variant="caption" >In some cases, you will also be able to explore the material and carbon implications of the reciprocal relation.</Typography>
+      <Divider/>
+      <Typography variant="caption" >This website is a work-in-progress under ungoing development.  If you would like to contribute or leave feedback/comments, please visit the <Link href="https://github.com/szvsw/interactive-graphic-statics">GitHub repository</Link>.</Typography>
+      <Typography variant="caption" >Thank you to John Ochsendof and Moh Ismail for their wonderful sources of inspiration.</Typography>
+    </Stack>
+  </>
   );
 }
