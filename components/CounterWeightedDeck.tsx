@@ -308,13 +308,14 @@ export const CalatravaSketch: React.FC = () => {
 
 	return (
     <>
-      <Stack sx={{mt: "1rem"}} direction="row" justifyContent="space-between" alignItems="center">
+      <Stack sx={{mt: "1rem"}} spacing="1rem" direction="row" justifyContent="space-between" alignItems="center">
 
       <ToggleButtonGroup  exclusive onChange={(event: React.MouseEvent<HTMLElement>,newInputGroup: string)=>setInputGroup(newInputGroup)} value={inputGroup}>
         <ToggleButton value="geometric">Geometric Properties</ToggleButton>
         <ToggleButton value="material">Material Properties</ToggleButton>
+        <ToggleButton value="usage">Usage Properties</ToggleButton>
       </ToggleButtonGroup>
-      <Typography variant="overline">GWP: x lbsCO2eq, y years of driving to work, z flights from LA to NY, w steaks </Typography>
+      <Typography variant="overline">GWP: x lbsCO2eq/transit, y years of driving to work, z flights from LA to NY, w steaks </Typography>
       </Stack>
       <Stack sx={{mt: "2rem",}} direction="row" spacing="2rem" alignItems="center">
 
@@ -429,6 +430,30 @@ export const CalatravaSketch: React.FC = () => {
               size="small"
               id="standard-number"
               label="Cable GWP (lbs CO2eq/lb)"
+              type="number"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              variant="outlined"
+            />
+        </Stack>
+      </Box>
+      <Box sx={{display: inputGroup=="usage" ? "inline" : "none"}}>
+        <Stack spacing="1rem">
+          <TextField
+              size="small"
+              id="standard-number"
+              label="Expected Lifespan (yrs)"
+              type="number"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              variant="outlined"
+            />
+          <TextField
+              size="small"
+              id="standard-number"
+              label="Transits/Day"
               type="number"
               InputLabelProps={{
                 shrink: true,
