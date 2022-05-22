@@ -13,6 +13,7 @@ export default function App() {
       <Divider/>
       <Typography variant="caption" >This website is a work-in-progress under ungoing development.  If you would like to contribute or leave feedback/comments, please visit the <Link href="https://github.com/szvsw/interactive-graphic-statics">GitHub repository</Link>.</Typography>
       <Typography variant="caption" >Thank you to John Ochsendof and Moh Ismail for their wonderful sources of inspiration.</Typography>
+      <Typography variant="caption" >This IGS application is also inspired by the mid-2000s web-based graphic statics demonstrations written by Phillipe Block, Simon Greenwold, Edward Allen, and Waclaw Zalewski.</Typography>
     </Stack>
   </>
   );
