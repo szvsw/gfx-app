@@ -143,6 +143,19 @@ export default function HookesLaw() {
           this.p5?.line(0,y,this.poleInForce[0],this.poleInForce[1])
         })
       },
+      drawMirrorPoleInForce() {
+        this.p5?.noStroke()
+        this.p5?.fill(constructionGray)
+        this.p5?.ellipse(-this.poleInForce[0],this.poleInForce[1],forceDiagramEllipseSize/this.forceDiagramScale)
+      },
+      drawMirrorCompressionForces() {
+        this.p5?.stroke(constructionGray)
+        this.p5?.strokeWeight(1/this.forceDiagramScale)
+        this.loadYCoordsInForce.map((y)=>{
+          this.p5?.line(0,y,-this.poleInForce[0],this.poleInForce[1])
+        })
+
+      },
       drawEdgeConditionsInForm() {
         this.p5?.noStroke()
         this.p5?.fill(255)
@@ -209,7 +222,20 @@ export default function HookesLaw() {
         this.nodesInForm.slice(0,this.nodesInForm.length-1).map(([x,y],i)=>{
           this.p5?.line(x,y,this.nodesInForm[i+1][0],this.nodesInForm[i+1][1])
         })
-
+      },
+      drawMirrorNodesInForm() {
+        this.p5?.noStroke()
+        this.p5?.fill(constructionGray)
+        this.nodesInForm.map(([x,y])=>{
+          this.p5?.ellipse(x,-y,formDiagramEllipseSize*0.5/this.formDiagramScale,formDiagramEllipseSize*0.5/this.formDiagramScale)
+        })
+      },
+      drawMirrorEdgesInForm() {
+        this.p5?.stroke(constructionGray)
+        this.p5?.strokeWeight(1/this.formDiagramScale)
+        this.nodesInForm.slice(0,this.nodesInForm.length-1).map(([x,y],i)=>{
+          this.p5?.line(x,-y,this.nodesInForm[i+1][0],-this.nodesInForm[i+1][1])
+        })
       },
       drawFormDiagram() {
         this.p5?.push()
@@ -223,6 +249,8 @@ export default function HookesLaw() {
         this.drawTangentsInForm()
         this.drawNodesInForm()
         this.drawEdgesInForm()
+        this.drawMirrorEdgesInForm()
+        this.drawMirrorNodesInForm()
         this.p5?.pop()
       },
       drawForceDiagram() {
@@ -233,6 +261,8 @@ export default function HookesLaw() {
         this.drawLoadLine()
         this.drawPoleInForce()
         this.drawTensionForces()
+        this.drawMirrorPoleInForce()
+        this.drawMirrorCompressionForces()
         this.p5?.pop()
       }
     }
