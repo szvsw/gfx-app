@@ -1,8 +1,6 @@
-import Typography from "@mui/material/Typography"
-export default function HookesLaw() {
+import HookesLaw from "components/HookesLaw"
+export default function HookesLawPage() {
 	return (
-	<Typography>
-    Coming Soon.
-		</Typography>
+    <HookesLaw/>
 	)
 }
