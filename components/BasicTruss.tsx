@@ -272,6 +272,10 @@ export const BasicTruss: React.FC = () => {
           }
         })
       },
+      resetPointsInForce() {
+
+        this.edges.map((edge)=>edge.pointsInForce=[])
+      },
       determinePointsInForce() {
         // const node = this.nodes[0]
         // node.edges.map((edge,i)=>{
@@ -287,6 +291,7 @@ export const BasicTruss: React.FC = () => {
         // })
         // this.nodes.sort((a,b)=>b.locInForm.x==a.locInForm.x ? b.locInForm.y-a.locInForm.y : b.locInForm.x - a.locInForm.x )
         this.nodes.map((node,i)=>{
+          console.log(" ")
           console.log(`Beginning work on node ${node.locInForm.x},${node.locInForm.y}`)
           node.edges.sort((a,b)=>a.angle-b.angle)
           const noLocationsKnown =  (node.edges.reduce((a,b)=>a+(b.pointsInForce.length==0 ? 1 : 0),0)==node.edges.length)
@@ -297,7 +302,7 @@ export const BasicTruss: React.FC = () => {
           if (i==0 && noLocationsKnown) {
             console.log("This is the first node and no locations are known, so creating first tri")
             node.edges.map((edge,j)=>{
-              const magnitude = node==edge.nodes[0] ? edge.magnitude : -edge.magnitude
+              const magnitude = node==edge.nodes[1] ? edge.magnitude : -edge.magnitude
               const start = (noLocationsKnown && j==0) ? {x: 0, y:0} : node.edges[j-1].pointsInForce[1]
               const end: point = {x: start.x+magnitude*Math.cos(edge.angle), y: start.y+magnitude*Math.sin(edge.angle)}
               edge.pointsInForce = [start,end]
@@ -309,7 +314,7 @@ export const BasicTruss: React.FC = () => {
           node.edges.map((_edge,j)=>{
             console.log(`trying to solve edge ${j}`)
             const edge = node.edges[(j+firstKnownEdgeIndex+node.edges.length)%node.edges.length]
-            const magnitude = node==edge.nodes[0] ? edge.magnitude : -edge.magnitude
+            const magnitude = node==edge.nodes[1] ? edge.magnitude : -edge.magnitude
             const start =  j==0 ? node.edges[firstKnownEdgeIndex].pointsInForce[1] : node.edges[((j+firstKnownEdgeIndex-1)+node.edges.length)%node.edges.length].pointsInForce[1]
             const end: point = {x: start.x+magnitude*Math.cos(edge.angle), y: start.y+magnitude*Math.sin(edge.angle)}
             edge.pointsInForce = [start,end]
@@ -354,11 +359,15 @@ export const BasicTruss: React.FC = () => {
     <Sketch 
       setup={setup}
       draw={(p5: p5Types)=> {
-        // truss.current.nodes[0].locInForm={x:(p5.mouseX-p5.width/2)/30,y:(p5.mouseY-p5.height/2)/30} // TODO: figure out why nodes 1 and 4 mess up the drawing
+        truss.current.nodes[2].locInForm={x:truss.current.nodes[2].locInForm.x,y:(p5.mouseY-p5.height/2)/30} // TODO: figure out why nodes 1 and 4 mess up the drawing
+        truss.current.nodes[3].locInForm={x:truss.current.nodes[3].locInForm.x,y:(p5.mouseY-p5.height/2)/30} // TODO: figure out why nodes 1 and 4 mess up the drawing
+        // p5.noLoop()
         truss.current.resetInternalForces()
         truss.current.determineMemberVectors()
         truss.current.solveReactions()
         truss.current.solveAllNodes()
+        truss.current.resetPointsInForce()
+        truss.current.determinePointsInForce()
         truss.current.determinePointsInForce()
         p5.background(0)
         truss.current.edges.map((edge)=>{
