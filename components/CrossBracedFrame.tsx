@@ -2,19 +2,12 @@ import p5Types from 'p5' //Import this for typechecking and intellisense
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
-import Slider from '@mui/material/Slider'
-import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { ResponsiveContainer } from 'recharts'
-import {
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  Grid,
-  Switch,
-  ToggleButton,
-  ToggleButtonGroup,
-} from '@mui/material'
+import Checkbox from '@mui/material/Checkbox'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import Grid from '@mui/material/Grid'
 
 const Sketch = dynamic(() => import('react-p5').then((mod) => mod.default), {
   ssr: false,
