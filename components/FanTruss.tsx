@@ -42,6 +42,9 @@ const dashSize = 0.1
 
 export default function HookesLaw() {
   const [editMode, setEditMode] = useState(0)
+  const [chordZ, setChordZ] = useState(-10)
+  const [mainNodeZ, setMainNodeZ] = useState(10)
+  const [chordBaseWidth, setChordBaseWidth] = useState(10)
   const createFanTruss = useCallback(() => {
     return {
       p5: undefined as p5Types | undefined,
@@ -51,6 +54,9 @@ export default function HookesLaw() {
       compressionMat: {
         ...materials.Wood,
       },
+      runOptimizer: false,
+      globalBests: [99999, 99999, 99999],
+      genes: Array(20).fill({ chordBaseWidth: 10, mainNodeZ: 10, chordZ: -10 }),
       mouseTrackingEnabled: true,
       editMode: 0,
       styleFormDiagram: false,
@@ -61,9 +67,9 @@ export default function HookesLaw() {
       forceDiagramOffset: [7 / 8, 1 / 2],
       loadUnit: 20,
       span: 30,
-      chordBaseWidth: 10,
-      mainNodeZ: 10,
-      chordZ: -10,
+      chordBaseWidth: chordBaseWidth,
+      mainNodeZ: mainNodeZ,
+      chordZ: chordZ,
       mainNode: [0, 10],
       chordLocations: [
         [-15, 0],
@@ -249,6 +255,84 @@ export default function HookesLaw() {
         this.updateForceMagnitudes()
         this.updateEmbodiedCarbon()
       },
+      createGene() {
+        return {
+          chordBaseWidth: Math.random() * 20 + 0.1,
+          mainNodeZ: Math.random() * 20 - 10,
+          chordZ: Math.random() * -15 - 0.1,
+        }
+      },
+      initializeGenes() {
+        this.genes = this.genes.map((_) => this.createGene())
+      },
+      mutateGenes() {
+        const mutationProbability = 0.25
+        const elitismPercent = 0.05
+        this.genes = this.genes.map((gene, i) => {
+          if (i / this.genes.length < elitismPercent) return gene
+          if (Math.random() < mutationProbability)
+            gene.chordZ = Math.max(Math.min(gene.chordZ + Math.random() * 2 - 1, 0), -15)
+          if (Math.random() < mutationProbability)
+            gene.mainNodeZ = Math.max(Math.min(gene.mainNodeZ + Math.random() * 2 - 1, 15), 4)
+          if (Math.random() < mutationProbability)
+            gene.chordBaseWidth = Math.max(
+              Math.min(gene.chordBaseWidth + Math.random() * 2 - 1, 25),
+              0.1
+            )
+          return gene
+        })
+      },
+      introduceExternalGenes() {
+        const replacementRate = 0.25
+        const elitismPercent = 0.25
+        this.genes = this.genes.map((gene, i) => {
+          if (i / this.genes.length < elitismPercent) return gene // elitism
+          if (Math.random() < replacementRate) return this.createGene()
+          return gene
+        })
+      },
+      optimize() {
+        if (!this.runOptimizer) return false
+        const fitness = this.genes.map((_) => 0)
+        this.genes.forEach((gene, i) => {
+          Object.entries(gene).forEach(([key, val]) => (this[key] = val))
+          this.update()
+          fitness[i] = this.totalCarbon
+          let j = 0
+          while (j < this.globalBests.length) {
+            if (fitness[i] < this.globalBests[j]) {
+              this.globalBests[j] = fitness[i]
+              break
+            }
+            j = j + 1
+          }
+          this.globalBests.sort((a, b) => a - b)
+        })
+        const genesWithFitness = this.genes.map((gene, i) => [gene, fitness[i]])
+        genesWithFitness.sort(([_, fitness1], [__, fitness2]) => fitness1 - fitness2)
+        if (this.p5?.frameCount % 60 === 0) console.log(genesWithFitness)
+        const elitismPercent = 1
+        this.genes = genesWithFitness.map(([gene, _], i) => {
+          if (i / this.genes.length < elitismPercent) {
+            return gene
+          }
+          return this.createGene()
+        })
+        Object.entries(this.genes[0]).forEach(([key, val]) => (this[key] = val))
+        this.update()
+        this.mutateGenes()
+        this.introduceExternalGenes()
+        genesWithFitness.forEach(([gene, fitness], i) => {
+          if (this.globalBests.some((val) => val >= fitness)) {
+            this.genes[i] = gene
+          }
+        })
+        if (this.p5?.frameCount % 30 === 0) {
+          setChordBaseWidth(Math.round(this.chordBaseWidth * 10) / 10)
+          setChordZ(Math.round(10 * this.chordZ) / 10)
+          setMainNodeZ(Math.round(10 * this.mainNodeZ) / 10)
+        }
+      },
       drawNodesInForm() {
         this.p5?.noStroke()
         this.p5?.fill(255)
@@ -415,6 +499,12 @@ export default function HookesLaw() {
           -200 - 2 * this.p5?.textAscent()
         )
         this.p5?.text(`Structural Carbon: ${Math.round(this.totalCarbon)}lbs CO2eq`, -100, -200)
+        if (this.runOptimizer)
+          this.p5?.text(
+            `Best Carbon Values: ${this.globalBests.map((val) => Math.round(val)).join(', ')}`,
+            -100,
+            -200 + 2 * this.p5?.textAscent()
+          )
         this.p5?.pop()
       },
       drawBowsInForce() {
@@ -557,9 +647,11 @@ export default function HookesLaw() {
               min={-20}
               max={20}
               step={0.1}
-              defaultValue={10}
+              // defaultValue={10}
+              value={mainNodeZ}
               valueLabelDisplay={'auto'}
               onChange={(e, v) => {
+                setMainNodeZ(Number(v))
                 fanTruss.current.mainNodeZ = Number(v)
               }}
             />
@@ -571,9 +663,10 @@ export default function HookesLaw() {
               min={1}
               max={50}
               step={0.1}
-              defaultValue={10}
+              value={chordBaseWidth}
               valueLabelDisplay={'auto'}
               onChange={(e, v) => {
+                setChordBaseWidth(Number(v))
                 fanTruss.current.chordBaseWidth = Number(v)
               }}
             />
@@ -585,9 +678,10 @@ export default function HookesLaw() {
               min={-20}
               max={0}
               step={0.1}
-              defaultValue={-10}
+              value={chordZ}
               valueLabelDisplay={'auto'}
               onChange={(e, v) => {
+                setChordZ(Number(v))
                 fanTruss.current.chordZ = Number(v)
               }}
             />
@@ -596,6 +690,7 @@ export default function HookesLaw() {
             <TextField
               defaultValue="Steel"
               onChange={(e) => {
+                fanTruss.current.globalBests = fanTruss.current.globalBests.map((_) => 99999)
                 const value = e.target.value as keyof typeof materials
                 fanTruss.current.tensionMat = { ...materials[value] }
               }}
@@ -614,6 +709,7 @@ export default function HookesLaw() {
           <Grid item>
             <TextField
               onChange={(e) => {
+                fanTruss.current.globalBests = fanTruss.current.globalBests.map((_) => 99999)
                 const value = e.target.value as keyof typeof materials
                 fanTruss.current.compressionMat = { ...materials[value] }
               }}
@@ -649,6 +745,20 @@ export default function HookesLaw() {
                 />
               }
               label={'Show forces and length in form diagram'}
+            />
+          </Grid>
+          <Grid item>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  onChange={() => {
+                    fanTruss.current.initializeGenes()
+                    fanTruss.current.globalBests = [99999, 99999, 99999]
+                    fanTruss.current.runOptimizer = !fanTruss.current.runOptimizer
+                  }}
+                />
+              }
+              label={'Run optimization'}
             />
           </Grid>
         </Grid>
@@ -701,6 +811,7 @@ export default function HookesLaw() {
         draw={(p5: p5Types) => {
           p5.background(0)
           fanTruss.current.update()
+          fanTruss.current.optimize()
           fanTruss.current.drawForceDiagram()
           fanTruss.current.drawFormDiagram()
         }}
