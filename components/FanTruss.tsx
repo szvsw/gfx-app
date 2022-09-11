@@ -726,6 +726,11 @@ export default function HookesLaw() {
               ))}
             </TextField>
           </Grid>
+          <Grid item>
+            <Typography variant="caption">
+              3x buckling safety factor for elements in compression.
+            </Typography>
+          </Grid>
         </Grid>
 
         <Grid container item xs={4} spacing={2} direction="column">
