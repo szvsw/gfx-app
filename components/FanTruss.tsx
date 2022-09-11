@@ -1,18 +1,16 @@
 import p5Types from 'p5' //Import this for typechecking and intellisense
 import dynamic from 'next/dynamic'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
-import Stack from '@mui/material/Stack'
 import Slider from '@mui/material/Slider'
 import Typography from '@mui/material/Typography'
 import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid'
-import { distance, m, midpoint, solveIx, solveIxM } from '../lib/utils'
+import { distance, m, midpoint, solveIxM } from '../lib/utils'
 
 const Sketch = dynamic(() => import('react-p5').then((mod) => mod.default), {
   ssr: false,
@@ -20,14 +18,20 @@ const Sketch = dynamic(() => import('react-p5').then((mod) => mod.default), {
 
 const materials = {
   Steel: {
-    rho: 490, // pcf
-    sigma: 25, // ksi
-    carbonCoeff: 20, // lbsCO2eq/lb
+    rho: 0.284, // pci
+    sigmaT: 25, // ksi
+    sigmaC: 25, // ksi
+    sigmaB: 24,
+    E: 29000, // ksi
+    carbonCoeff: 1.23, // lbsCO2eq/lb
   },
   Wood: {
-    rho: 490, // pcf
-    sigma: 25, // ksi
-    carbonCoeff: 20, // lbsCO2eq/lb
+    rho: 0.019, // pci
+    sigmaC: 1.7, // ksi
+    sigmaT: 1.0, // ksi
+    sigmaB: 1.5, // ksi
+    E: 1900, // ksi
+    carbonCoeff: 0.42, // lbsCO2eq/lb
   },
 }
 const constructionGray = 60
@@ -41,15 +45,16 @@ export default function HookesLaw() {
   const createFanTruss = useCallback(() => {
     return {
       p5: undefined as p5Types | undefined,
-      tensionSigma: 25, // ksi
-      tensionRho: 490, // pcf
-      tensionCarbonCoeff: 20, // lbsCO2eq/lb
-      compressionSigma: 25, // ksi
-      compressionRho: 490, // pcf
-      compressionCarbonCoeff: 20, // lbsCO2eq/lb
+      tensionMat: {
+        ...materials.Steel,
+      },
+      compressionMat: {
+        ...materials.Wood,
+      },
       mouseTrackingEnabled: true,
       editMode: 0,
       styleFormDiagram: false,
+      showForcesAndLengths: false,
       forceDiagramScale: 10,
       formDiagramScale: 10,
       formDiagramOffset: [1 / 2, 1 / 2],
@@ -68,6 +73,8 @@ export default function HookesLaw() {
       ],
       mainSlopes: [0, 0, 0, 0],
       chordSlopes: [0, 0, 0],
+      chordLengths: [0, 0, 0],
+      mainLengths: [0, 0, 0, 0],
       externalNodesInForce: [
         [0, 0],
         [0, 0],
@@ -79,6 +86,12 @@ export default function HookesLaw() {
         [0, 0],
       ],
       chordForces: [0, 0, 0],
+      chordMasses: [0, 0, 0],
+      mainMasses: [0, 0, 0, 0],
+      chordCarbon: [0, 0, 0],
+      mainCarbon: [0, 0, 0, 0],
+      totalMass: 0,
+      totalCarbon: 0,
       compressionForces: [0, 0, 0, 0],
       updateMainNodeLocation() {
         this.mainNode = [0, this.mainNodeZ]
@@ -88,6 +101,19 @@ export default function HookesLaw() {
         this.chordLocations[1] = [-this.chordBaseWidth / 2, this.chordZ]
         this.chordLocations[2] = [this.chordBaseWidth / 2, this.chordZ]
         this.chordLocations[3] = [this.span / 2, 0]
+      },
+      updateElementLengths() {
+        this.chordLocations.slice(0, this.chordLocations.length - 1).forEach(([x, y], i) => {
+          this.chordLengths[i] = distance(
+            x,
+            y,
+            this.chordLocations[i + 1][0],
+            this.chordLocations[i + 1][1]
+          )
+        })
+        this.chordLocations.forEach(([x, y], i) => {
+          this.mainLengths[i] = distance(x, y, this.mainNode[0], this.mainNode[1])
+        })
       },
       updateMainSlopes() {
         this.chordLocations.forEach(([x, y], i) => {
@@ -117,26 +143,31 @@ export default function HookesLaw() {
           this.mainSlopes[0],
           bowCLocation,
           this.chordSlopes[0]
-        )
+        ) as number[]
         // This should be easily abstractable...
         const bow2Location = solveIxM(
           bow1Location,
           this.mainSlopes[1],
           bowCLocation,
           this.chordSlopes[1]
-        )
+        ) as number[]
         const bow3Location = solveIxM(
           bow2Location,
           this.mainSlopes[2],
           bowCLocation,
           this.chordSlopes[2]
-        )
+        ) as number[]
 
         this.internalNodesInForce = [bow1Location, bow2Location, bow3Location]
       },
       updateForceMagnitudes() {
         this.chordForces = this.internalNodesInForce.map(([x, y]) =>
-          distance(x, y, this.externalNodesInForce[this.externalNodesInForce.length - 1])
+          distance(
+            x,
+            y,
+            this.externalNodesInForce[this.externalNodesInForce.length - 1][0],
+            this.externalNodesInForce[this.externalNodesInForce.length - 1][1]
+          )
         )
         const sortedNodes = this.internalNodesInForce.slice()
         sortedNodes.push(this.externalNodesInForce[1])
@@ -155,40 +186,68 @@ export default function HookesLaw() {
           )
       },
       updateEmbodiedCarbon() {
-        const tensionAreas = this.chordForces.map((force) => force / this.tensionSigma) // sq. in
-        const tensionRadii = tensionAreas.map((area) => Math.sqrt(area / Math.PI)) // in
-        const tensionLengths = this.chordLocations
-          .slice(0, this.chordLocations.length - 1)
-          .map(
-            ([x, y], i) =>
-              distance(x, y, this.chordLocations[i + 1][0], this.chordLocations[i + 1][1]) * 12
-          ) // inches
+        const tensionAreas = this.chordForces.map((force) => force / this.tensionMat.sigmaT) // sq. in
+        // const tensionRadii = tensionAreas.map((area) => Math.sqrt(area / Math.PI)) // in
+        const tensionLengths = this.chordLengths.map((l) => l * 12) // in
         const tensionVolumes = tensionAreas.map((area, i) => area * tensionLengths[i]) // cub. in
-        const tensionMasses = tensionVolumes.map((vol) => (this.tensionRho * vol) / 12 / 12 / 12) // lbs
-        const tensionCarbon = tensionMasses.map((mass) => mass * this.tensionCarbonCoeff) // lbCO2eq
+        const tensionMasses = tensionVolumes.map((vol) => this.tensionMat.rho * vol) // lbs
+        const tensionCarbon = tensionMasses.map((mass) => mass * this.tensionMat.carbonCoeff) // lbCO2eq
 
-        const compressionAreas = this.compressionForces.map(
-          (force) => force / this.compressionSigma
+        // safety factor of 3
+        // 3*F = PI^2*E*I / (kL^2), k = 1, I = pi/4 * r^4
+        // 3*F*k*L^2 / (Pi^2*E) = PI/4 * r^4
+        // (4*3*F*k*L^2 / (PI*E))^(1/2) = PI*r^2 = A
+        const compressionLengths = this.mainLengths.map((l) => l * 12) // inches
+        const compressionBucklingAreas = this.compressionForces.map(
+          (f, i) =>
+            ((4 * 3 * f * 1 * compressionLengths[i] ** 2) / (Math.PI * this.compressionMat.E)) **
+            0.5
+        )
+
+        const compressionStrengthAreas = this.compressionForces.map(
+          (force) => force / this.compressionMat.sigmaC
         ) // sq. in
-        const compressionRadii = compressionAreas.map((area) => Math.sqrt(area / Math.PI)) // in
-        const compressionLengths = this.chordLocations.map(
-          ([x, y], i) => distance(x, y, this.mainNode[0], this.mainNode[1]) * 12
-        ) // inches
+        const compressionAreas = compressionBucklingAreas.map((a, i) =>
+          Math.max(a, compressionStrengthAreas[i])
+        )
+        // const compressionRadii = compressionAreas.map((area) => Math.sqrt(area / Math.PI)) // in
         const compressionVolumes = compressionAreas.map((area, i) => area * compressionLengths[i]) // cub. in
-        const compressionMasses = compressionVolumes.map(
-          (vol) => (this.compressionRho * vol) / 12 / 12 / 12
-        ) // lbs
+        const compressionMasses = compressionVolumes.map((vol) => this.compressionMat.rho * vol) // lbs
         const compressionCarbon = compressionMasses.map(
-          (mass) => mass * this.compressionCarbonCoeff
+          (mass) => mass * this.compressionMat.carbonCoeff
         ) // lbCO2eq
+        this.chordMasses = tensionMasses
+        this.chordCarbon = tensionCarbon
+        this.mainMasses = compressionMasses
+        this.mainCarbon = compressionCarbon
+        this.totalMass = compressionMasses.concat(tensionMasses).reduce((a, b) => a + b, 0)
+        this.totalCarbon = compressionCarbon.concat(tensionCarbon).reduce((a, b) => a + b, 0)
+        // console.log('tension lengths', tensionLengths)
+        // console.log('tension forces', this.chordForces)
+        // console.log('tension areas', tensionAreas)
+        // console.log('tension radii', tensionRadii)
+        // console.log('tension volumes', tensionVolumes)
+        // console.log('tension masses', tensionMasses)
+        // console.log('tension carbon', tensionCarbon)
+        // console.log('compression lengths', compressionLengths)
+        // console.log('compression forces', this.compressionForces)
+        // console.log('compression stress areas', compressionStrengthAreas)
+        // console.log('compression buckling areas', compressionBucklingAreas)
+        // console.log('compression areas', compressionAreas)
+        // console.log('compression mass', compressionMasses)
+        // console.log('compression carbon', compressionCarbon)
+        // console.log('structural mass', structuralMass)
+        // console.log('structural carbon', structuralCarbon)
       },
       update() {
         this.updateMainNodeLocation()
         this.updateChordLocations()
+        this.updateElementLengths()
         this.updateMainSlopes()
         this.updateChordSlopes()
         this.solveForceDiagramTopHalf()
         this.updateForceMagnitudes()
+        this.updateEmbodiedCarbon()
       },
       drawNodesInForm() {
         this.p5?.noStroke()
@@ -292,6 +351,72 @@ export default function HookesLaw() {
         })
         this.p5?.pop()
       },
+      drawForceValuesInForm() {
+        if (!this.showForcesAndLengths) return
+        this.p5?.noStroke()
+        this.p5?.fill(255)
+        this.p5?.textSize(12)
+        this.p5?.push()
+        this.p5?.scale(1 / this.formDiagramScale, -1 / this.formDiagramScale)
+        this.chordForces.forEach((f, i) => {
+          const loc = midpoint(this.chordLocations[i], this.chordLocations[i + 1])
+          this.p5?.text(
+            `${Math.round(f)}k (T)`,
+            loc[0] * this.formDiagramScale,
+            -loc[1] * this.formDiagramScale
+          )
+        })
+        this.compressionForces.forEach((f, i) => {
+          const loc = midpoint(this.chordLocations[i], this.mainNode)
+          this.p5?.text(
+            `${Math.round(f)}k (C)`,
+            loc[0] * this.formDiagramScale,
+            -loc[1] * this.formDiagramScale
+          )
+        })
+
+        this.p5?.pop()
+      },
+      drawLengthsInForm() {
+        if (!this.showForcesAndLengths) return
+        this.p5?.noStroke()
+        this.p5?.fill(255)
+        this.p5?.textSize(12)
+        this.p5?.push()
+        this.p5?.scale(1 / this.formDiagramScale, -1 / this.formDiagramScale)
+        this.chordLengths.forEach((l, i) => {
+          const loc = midpoint(this.chordLocations[i], this.chordLocations[i + 1])
+          this.p5?.text(
+            `${Math.round(l)}ft`,
+            loc[0] * this.formDiagramScale,
+            (-loc[1] + 2) * this.formDiagramScale
+          )
+        })
+        this.mainLengths.forEach((l, i) => {
+          const loc = midpoint(this.chordLocations[i], this.mainNode)
+          this.p5?.text(
+            `${Math.round(l)}ft`,
+            loc[0] * this.formDiagramScale,
+            (-loc[1] + 2) * this.formDiagramScale
+          )
+        })
+
+        this.p5?.pop()
+      },
+      drawECandMassInForm() {
+        this.p5?.noStroke()
+        this.p5?.fill(255)
+        this.p5?.textSize(12)
+        this.p5?.push()
+        this.p5?.scale(1 / this.formDiagramScale, -1 / this.formDiagramScale)
+        this.p5?.text(
+          `Structural Mass: ${Math.round(this.totalMass)}lbs`,
+          -100,
+          -200 - 2 * this.p5?.textAscent()
+        )
+        this.p5?.text(`Structural Carbon: ${Math.round(this.totalCarbon)}lbs CO2eq`, -100, -200)
+        this.p5?.pop()
+      },
       drawBowsInForce() {
         this.p5?.noStroke()
         this.p5?.fill(255)
@@ -360,7 +485,9 @@ export default function HookesLaw() {
         this.drawEdgesInForm()
         this.drawNodesInForm()
         this.drawBowsInForm()
-
+        this.drawForceValuesInForm()
+        this.drawLengthsInForm()
+        this.drawECandMassInForm()
         this.p5?.pop()
       },
     }
@@ -468,29 +595,37 @@ export default function HookesLaw() {
           <Grid item>
             <TextField
               defaultValue="Steel"
+              onChange={(e) => {
+                const value = e.target.value as keyof typeof materials
+                fanTruss.current.tensionMat = { ...materials[value] }
+              }}
               fullWidth
               size="small"
               select
               label={'Tension Material'}
             >
-              {Object.entries(materials).map(([mat, { carbonCoeff, sigma }], i) => (
+              {Object.entries(materials).map(([mat, { carbonCoeff, sigmaT }]) => (
                 <MenuItem value={mat} key={`${mat}-tension`}>
-                  {mat} [{sigma} ksi] [{carbonCoeff} lbCO2eq/lb]{' '}
+                  {mat} [{sigmaT} ksi (T)] [{carbonCoeff} lbCO2eq/lb]
                 </MenuItem>
               ))}
             </TextField>
           </Grid>
           <Grid item>
             <TextField
+              onChange={(e) => {
+                const value = e.target.value as keyof typeof materials
+                fanTruss.current.compressionMat = { ...materials[value] }
+              }}
               fullWidth
               defaultValue="Wood"
               size="small"
               select
               label={'Compression Material'}
             >
-              {Object.entries(materials).map(([mat, { carbonCoeff, sigma }], i) => (
+              {Object.entries(materials).map(([mat, { carbonCoeff, sigmaC }]) => (
                 <MenuItem value={mat} key={`${mat}-compression`}>
-                  {mat} [{sigma} ksi] [{carbonCoeff} lbCO2eq/lb]{' '}
+                  {mat} [{sigmaC} ksi (C)] [{carbonCoeff} lbCO2eq/lb]
                 </MenuItem>
               ))}
             </TextField>
@@ -502,6 +637,18 @@ export default function HookesLaw() {
             <FormControlLabel
               control={<Checkbox onClick={toggleStyleFormDiagram} value={styleFormDiagram} />}
               label={'Show thickness and force polarity [blue: T]'}
+            />
+          </Grid>
+          <Grid item>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  onChange={() =>
+                    (fanTruss.current.showForcesAndLengths = !fanTruss.current.showForcesAndLengths)
+                  }
+                />
+              }
+              label={'Show forces and length in form diagram'}
             />
           </Grid>
         </Grid>

@@ -86,6 +86,11 @@ export const Header: React.FC<Props> = (props) => {
                   </Link>
                 </MenuItem>
                 <MenuItem>
+                  <Link href="/fan-truss">
+                    <Button>Simple Fan Truss</Button>
+                  </Link>
+                </MenuItem>
+                <MenuItem>
                   <Link href="/cross-braced-frame">
                     <Button>Cross Braced Frame</Button>
                   </Link>

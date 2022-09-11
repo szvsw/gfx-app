@@ -174,8 +174,8 @@ export const EquilibriumNode: React.FC = () => {
                     defaultValue={angle}
                     value={equilibriumNode.current.angles[i]}
                     step={0.01}
-                    min={0}
-                    max={2 * Math.PI}
+                    min={(i * 2 * Math.PI) / equilibriumNode.current.nForces}
+                    max={((i + 1) * 2 * Math.PI) / equilibriumNode.current.nForces}
                   />
                 </Box>
               )
