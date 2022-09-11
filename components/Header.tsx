@@ -39,7 +39,10 @@ export const Header: React.FC<Props> = (props) => {
       </Head>
 
       <Box sx={{ p: '2rem' }}>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack
+          direction={{ md: 'row', xs: 'column' }}
+          sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+        >
           <Stack>
             <Link href="/">
               <Button variant="text">
